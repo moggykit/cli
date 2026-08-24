@@ -7,9 +7,11 @@ npx moggykit
 ```
 
 ```
-  /\_/\   Midge
-  ( o.o )  male · ~10m · active
+   /\_/\    Midge
+  ( o.o )   male · ~10m · active
    > ^ <
+
+  Found under a wheelbarrow.
 
   Sponsor  https://aave.pt/en/cats/midge-2026-07
   Photo    https://moggy.dev/600/400/midge-2026-07

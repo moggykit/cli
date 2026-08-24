@@ -102,14 +102,23 @@ function describe(cat) {
   return [sex, cat.approx_age, cat.status].filter(Boolean).join(' · ')
 }
 
+/**
+ * Each line is padded to the same width so the ears sit centred over the face
+ * and the text beside it lines up in one column. Trailing space is trimmed per
+ * line — invisible in a terminal, but it shows up the moment anyone pipes the
+ * output into a file or a diff.
+ */
+const ART = [' /\\_/\\ ', '( o.o )', ' > ^ < ']
+
 function render(cat) {
   const details = describe(cat)
+  const beside = [bold(cat.name), details ? dim(details) : '', '']
+
+  const head = ART.map((line, index) => `  ${pink(line)}   ${beside[index]}`.trimEnd())
 
   return [
     '',
-    `  ${pink('/\\_/\\')}   ${bold(cat.name)}`,
-    `  ${pink('( o.o )')}  ${details ? dim(details) : ''}`,
-    `  ${pink(' > ^ < ')}`,
+    ...head,
     '',
     `  ${cat.story ?? dim('No story written yet.')}`,
     '',
