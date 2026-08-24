@@ -1,6 +1,6 @@
 {
   "name": "moggykit",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Real rescue cats in your terminal — a tiny client for the free developer tools at moggy.dev.",
   "keywords": [
     "cats",
@@ -17,6 +17,10 @@
   },
   "bugs": {
     "url": "https://github.com/moggykit/cli/issues"
+  },
+  "funding": {
+    "type": "individual",
+    "url": "https://aave.pt/en/cats?utm_source=moggykit&utm_medium=cli&utm_campaign=sponsor"
   },
   "license": "MIT",
   "author": "Sarah Sibert",
