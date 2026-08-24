@@ -1,0 +1,36 @@
+{
+  "name": "moggykit",
+  "version": "0.1.0",
+  "description": "Real rescue cats in your terminal — a tiny client for the free developer tools at moggy.dev.",
+  "keywords": [
+    "cats",
+    "cli",
+    "placeholder",
+    "rescue",
+    "api",
+    "fun"
+  ],
+  "homepage": "https://moggy.dev",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/moggykit/cli.git"
+  },
+  "bugs": {
+    "url": "https://github.com/moggykit/cli/issues"
+  },
+  "license": "MIT",
+  "author": "Sarah Sibert",
+  "type": "module",
+  "bin": {
+    "moggykit": "bin/moggykit.js"
+  },
+  "files": [
+    "bin"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node --test"
+  }
+}
