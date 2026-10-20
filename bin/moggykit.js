@@ -3,8 +3,8 @@
 /**
  * moggykit — real rescue cats in your terminal.
  *
- * A thin client for moggy.dev/api and nothing more: no caching, no cleverness,
- * no logic of its own. Every cat shown here is a real cat living with
+ * A small client for moggy.dev/api, with optional /dev/null sharing. Cat data
+ * is fetched fresh for each session. Every cat shown here is a real cat living with
  * Associação Ambiental da Via da Estrela in Portugal, and every one of them
  * can be sponsored.
  *
@@ -14,6 +14,7 @@
 
 import { readFileSync } from 'node:fs'
 import { terminalText } from './terminal.js'
+import { sponsorUrl } from './sponsor.js'
 
 const API = process.env.MOGGYKIT_API ?? 'https://moggy.dev/api'
 const TIMEOUT_MS = 10_000
@@ -37,6 +38,9 @@ const HELP = `
     npx moggykit <slug>          a particular cat
     npx moggykit browse          browse cats interactively
     npx moggykit --json          the raw JSON, for piping
+
+  Browse keys: ← / → select · s sponsor · p prepare /dev/null post · q quit
+  Posting needs a GitHub SSH key in your agent; see the README for setup.
 
   ${bold('Options')}
     --json         print the API response instead of the pretty version
@@ -176,7 +180,8 @@ async function main() {
     return
   }
 
-  const cat = await fetchCat(slug)
+  const fetched = await fetchCat(slug)
+  const cat = { ...fetched, sponsor_url: sponsorUrl(fetched.sponsor_url) }
 
   const json = () => JSON.stringify(cat, null, 2).replace(/[\u007f-\u009f]/g,
     (character) => `\\u${character.charCodeAt(0).toString(16).padStart(4, '0')}`)
