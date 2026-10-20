@@ -1,6 +1,6 @@
 {
   "name": "moggykit",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Real rescue cats in your terminal — a tiny client for the free developer tools at moggy.dev.",
   "keywords": [
     "cats",
