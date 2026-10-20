@@ -13,6 +13,7 @@
  */
 
 import { readFileSync } from 'node:fs'
+import { terminalText } from './terminal.js'
 
 const API = process.env.MOGGYKIT_API ?? 'https://moggy.dev/api'
 const TIMEOUT_MS = 10_000
@@ -34,6 +35,7 @@ const HELP = `
   ${bold('Usage')}
     npx moggykit                 a cat, chosen at random
     npx moggykit <slug>          a particular cat
+    npx moggykit browse          browse cats interactively
     npx moggykit --json          the raw JSON, for piping
 
   ${bold('Options')}
@@ -53,31 +55,46 @@ const HELP = `
  * Fetch JSON, turning every failure into a message a human can act on.
  * A CLI that prints a raw stack trace has failed twice.
  */
-async function getJson(path) {
-  let response
+async function getJson(path, signal) {
+  const controller = new AbortController()
+  const abort = () => controller.abort()
+  signal?.addEventListener('abort', abort, { once: true })
+  if (signal?.aborted) abort()
+  let timedOut = false
+  const timer = setTimeout(() => {
+    timedOut = true
+    controller.abort()
+  }, TIMEOUT_MS)
 
   try {
-    response = await fetch(`${API}${path}`, {
-      headers: { accept: 'application/json' },
-      signal: AbortSignal.timeout(TIMEOUT_MS),
-    })
-  } catch (error) {
-    throw new Error(
-      error.name === 'TimeoutError'
+    let response
+    try {
+      response = await fetch(`${API}${path}`, {
+        headers: { accept: 'application/json' },
+        signal: controller.signal,
+      })
+    } catch {
+      throw new Error(timedOut
         ? `moggy.dev did not answer within ${TIMEOUT_MS / 1000}s`
-        : 'could not reach moggy.dev — are you online?',
-    )
-  }
+        : 'could not reach moggy.dev — are you online?')
+    }
 
-  if (response.status === 404) {
-    throw new Error('no cat by that name — run `npx moggykit` for a random one')
-  }
+    if (response.status === 404) {
+      throw new Error('no cat by that name — run `npx moggykit` for a random one')
+    }
+    if (!response.ok) throw new Error(`moggy.dev returned ${response.status}`)
 
-  if (!response.ok) {
-    throw new Error(`moggy.dev returned ${response.status}`)
+    try {
+      return await response.json()
+    } catch {
+      throw new Error(timedOut
+        ? `moggy.dev did not answer within ${TIMEOUT_MS / 1000}s`
+        : 'moggy.dev returned an invalid JSON response')
+    }
+  } finally {
+    clearTimeout(timer)
+    signal?.removeEventListener('abort', abort)
   }
-
-  return response.json()
 }
 
 /** A named cat, or a random one from the list. */
@@ -111,6 +128,8 @@ function describe(cat) {
 const ART = [' /\\_/\\ ', '( o.o )', ' > ^ < ']
 
 function render(cat) {
+  cat = Object.fromEntries(Object.entries(cat).map(([key, value]) =>
+    [key, typeof value === 'string' ? terminalText(value) : value]))
   const details = describe(cat)
   const beside = [bold(cat.name), details ? dim(details) : '', '']
 
@@ -150,12 +169,21 @@ async function main() {
   }
 
   const slug = args.find((arg) => !arg.startsWith('-'))
+  if (slug === 'browse') {
+    if (args.includes('--json')) throw new Error('browse is interactive; use `npx moggykit --json` for JSON')
+    const { browse } = await import('./browse.js')
+    await browse({ getJson, api: API })
+    return
+  }
+
   const cat = await fetchCat(slug)
 
-  console.log(args.includes('--json') ? JSON.stringify(cat, null, 2) : render(cat))
+  const json = () => JSON.stringify(cat, null, 2).replace(/[\u007f-\u009f]/g,
+    (character) => `\\u${character.charCodeAt(0).toString(16).padStart(4, '0')}`)
+  console.log(args.includes('--json') ? json() : render(cat))
 }
 
 main().catch((error) => {
-  console.error(`\n  moggykit: ${error.message}\n`)
+  console.error(`\n  moggykit: ${terminalText(error.message)}\n`)
   process.exit(1)
 })

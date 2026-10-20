@@ -32,6 +32,7 @@ before(async () => {
 
     if (request.url === '/cats') return json(200, { data: [CAT] })
     if (request.url === '/cats/midge-2026-07') return json(200, { data: CAT })
+    if (request.url === '/cats/unsafe') return json(200, { data: { ...CAT, name: 'Midge\u001b[2J', story: 'Story\u001b]52;c;secret\u0007\u009b2J' } })
     if (request.url === '/cats/empty') return json(200, { data: [] })
 
     return json(404, { message: 'Not found' })
@@ -97,6 +98,28 @@ describe('moggykit', () => {
 
     assert.ok(error, 'expected a non-zero exit')
     assert.match(error.stderr, /could not reach moggy\.dev/)
+  })
+
+  it('strips terminal escape sequences from the original pretty output too', async () => {
+    const { stdout } = await moggykit(['unsafe'])
+    assert.match(stdout, /Midge/)
+    assert.match(stdout, /Story/)
+    assert.doesNotMatch(stdout, /\u001b|secret/)
+  })
+
+  it('keeps raw JSON parseable while escaping terminal controls', async () => {
+    const { stdout } = await moggykit(['unsafe', '--json'])
+    assert.equal(JSON.parse(stdout).name, 'Midge\u001b[2J')
+    assert.doesNotMatch(stdout, /[\u001b\u007f-\u009f]/)
+  })
+
+  it('exits gracefully from browse in a pipe without fetching', async () => {
+    const { stdout } = await run('node', [BIN, 'browse'], {
+      env: { ...process.env, MOGGYKIT_API: 'https://moggy.invalid/api' },
+      timeout: 2000,
+    })
+    assert.match(stdout, /needs an interactive terminal/)
+    assert.doesNotMatch(stdout, /\u001b/)
   })
 
   it('shows help and version without touching the network', async () => {

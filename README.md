@@ -23,6 +23,7 @@ npx moggykit
 npx moggykit                    # a cat, chosen at random
 npx moggykit midge-2026-07      # a particular cat
 npx moggykit --json             # raw JSON, for piping
+npx moggykit browse             # interactive cat browser
 ```
 
 | Option | Effect |
@@ -31,6 +32,29 @@ npx moggykit --json             # raw JSON, for piping
 | `--no-color` | Plain text, no ANSI colour (`NO_COLOR` is respected too) |
 | `-h`, `--help` | Show help |
 | `-v`, `--version` | Show the installed version |
+
+### Interactive browser
+
+Requires Node 20+ and an interactive terminal (both input and output). Use left/right
+arrows to browse, `s` to open the selected cat's API-provided sponsorship URL in
+your default browser, and `q` or Ctrl+C to quit. Navigation wraps at either end.
+
+The browser loads every page of `/api/cats` and shows one name and story at a time.
+Loading, an empty list and request failures appear in the browser; `q` still exits.
+API text is stripped of terminal control sequences before display. Photos remain a
+later enhancement. In pipes, redirected output or `TERM=dumb`, `browse` prints a
+short explanation and exits without fetching or enabling keyboard controls.
+`--no-color` disables colour; the browser still uses cursor controls to redraw.
+
+To try an unpublished checkout locally, from the package directory:
+
+```sh
+node bin/moggykit.js browse
+npm test
+```
+
+The existing `MOGGYKIT_API` environment variable can point at another MoggyKit API
+base URL (including `/api`) when developing.
 
 ## What this is
 
