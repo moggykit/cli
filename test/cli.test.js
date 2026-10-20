@@ -16,7 +16,7 @@ const CAT = {
   status: 'active',
   story: 'Found under a wheelbarrow.',
   photo_url: 'https://moggy.dev/600/400/midge-2026-07',
-  sponsor_url: 'https://aave.pt/en/cats/midge-2026-07',
+  sponsor_url: 'https://associacaoambientaldaviadaestrela.org/en/cats/midge-2026-07',
 }
 
 let server
@@ -33,6 +33,7 @@ before(async () => {
     if (request.url === '/cats') return json(200, { data: [CAT] })
     if (request.url === '/cats/midge-2026-07') return json(200, { data: CAT })
     if (request.url === '/cats/unsafe') return json(200, { data: { ...CAT, name: 'Midge\u001b[2J', story: 'Story\u001b]52;c;secret\u0007\u009b2J' } })
+    if (request.url === '/cats/legacy') return json(200, { data: { ...CAT, sponsor_url: 'https://aave.pt/en/cats/midge-2026-07?utm_source=moggykit&utm_medium=api' } })
     if (request.url === '/cats/empty') return json(200, { data: [] })
 
     return json(404, { message: 'Not found' })
@@ -56,13 +57,21 @@ describe('moggykit', () => {
     assert.match(stdout, /Midge/)
     assert.match(stdout, /Found under a wheelbarrow\./)
     // The sponsor link is the entire point of the tool — never let it drop out.
-    assert.match(stdout, /aave\.pt\/en\/cats\/midge-2026-07/)
+    assert.match(stdout, /associacaoambientaldaviadaestrela\.org\/en\/cats\/midge-2026-07/)
   })
 
   it('prints a named cat', async () => {
     const { stdout } = await moggykit(['midge-2026-07'])
 
     assert.match(stdout, /Midge/)
+  })
+
+  it('converts legacy API sponsorship links in pretty output and JSON', async () => {
+    const pretty = await moggykit(['legacy'])
+    assert.match(pretty.stdout, /https:\/\/associacaoambientaldaviadaestrela\.org\/en\/cats\/midge-2026-07\?utm_source=moggykit&utm_medium=api/)
+    const json = await moggykit(['legacy', '--json'])
+    assert.equal(JSON.parse(json.stdout).sponsor_url,
+      'https://associacaoambientaldaviadaestrela.org/en/cats/midge-2026-07?utm_source=moggykit&utm_medium=api')
   })
 
   it('prints raw json when asked', async () => {
