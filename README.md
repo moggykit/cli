@@ -58,7 +58,7 @@ base URL (including `/api`) when developing.
 
 ## What this is
 
-A thin client for [moggy.dev](https://moggy.dev) — no caching, no cleverness, no logic of its own. Zero dependencies, because `npx` makes every user pay the install cost every time.
+A thin client for [moggy.dev](https://moggy.dev); no caching, no cleverness, no logic of its own. Zero dependencies, because `npx` makes every user pay the install cost every time.
 
 Moggykit is a set of free developer tools built from real rescue-cat data: placeholder images, a practice REST API, README widgets.
 
